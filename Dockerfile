@@ -1,16 +1,31 @@
-# Use official Node.js runtime as a base image
-FROM node:18-alpine
+# Multi-stage build for production
+FROM node:18-alpine AS builder
 
-# Set working directory in the container
 WORKDIR /app
 
-# Copy package.json and install all dependencies
-# We need devDependencies for the dev server
+# Copy package files
 COPY package*.json ./
-RUN npm install
 
-# Expose port 3000
-EXPOSE 3000
+# Install dependencies
+RUN npm ci --only=production
 
-# The command to start the dev server
-CMD ["npm", "start"]
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM nginx:alpine
+
+# Copy built app to nginx
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
