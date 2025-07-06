@@ -1,22 +1,35 @@
-# Use official Node.js runtime as base image
-FROM node:18-alpine
+# ---- Stage 1: Build the application ----
+FROM node:18-alpine AS builder
 
-# Set working directory in container
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
+# Copy package files and install ALL dependencies (including devDependencies)
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy source code
+# Copy the rest of the source code
 COPY . .
 
-# Build the app
+# Run the build script
 RUN npm run build
 
-# Expose port 3000
+# ---- Stage 2: Create the final production image ----
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files and install ONLY production dependencies
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy the built application from the 'builder' stage
+COPY --from=builder /app/build ./build
+# Note: If your build output is in a 'dist' folder, change the line above to:
+# COPY --from=builder /app/dist ./dist
+
+# Expose the port the app runs on
 EXPOSE 3000
 
 # Start the application
