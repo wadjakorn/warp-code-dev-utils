@@ -4,29 +4,34 @@ services:
   dev-utilities:
     build: .
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
     volumes:
       - .:/app
       - /app/node_modules
+    env_file:
+      - .env
+      - .env.local
+      - .env.development
+      - .env.development.local
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
+      # Pass through common environment variables from host
+      - HOME=${HOME}
+      - USER=${USER}
+      - SHELL=${SHELL}
+      - PATH=${PATH}
+      # React specific environment variables
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+      - REACT_APP_ENV=${REACT_APP_ENV}
+      - REACT_APP_DEBUG=${REACT_APP_DEBUG}
+      # General environment variables that might be needed
+      - API_KEY=${API_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
     stdin_open: true
     tty: true
     command: npm start
-
-  # Optional: Add nginx for production-like serving
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "8080:80"
-    volumes:
-      - ./build:/usr/share/nginx/html
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - dev-utilities
-    profiles:
-      - production
 
 volumes:
   node_modules:

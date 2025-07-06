@@ -5,7 +5,8 @@ yarn-error.log*
 .git
 .gitignore
 README.md
-.env
+# .env files are now handled by docker-compose
+# .env
 .nyc_output
 coverage
 .vscode
