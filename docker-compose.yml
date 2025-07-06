@@ -1,32 +1,12 @@
-version: '3.8'
-
 services:
   dev-utilities:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile # Tells Compose to use your Dockerfile
     ports:
       - "${APP_PORT:-3000}:3000"
     volumes:
       - .:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
-      # Pass through common environment variables from host
-      - HOME=${HOME}
-      - USER=${USER}
-      - SHELL=${SHELL}
-      - PATH=${PATH}
-      # React specific environment variables
-      - REACT_APP_API_URL=${REACT_APP_API_URL}
-      - REACT_APP_ENV=${REACT_APP_ENV}
-      - REACT_APP_DEBUG=${REACT_APP_DEBUG}
-      # General environment variables that might be needed
-      - API_KEY=${API_KEY}
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
+      - /app/node_modules # This keeps the container's node_modules separate
     stdin_open: true
     tty: true
-    command: npm start
-
-volumes:
-  node_modules:

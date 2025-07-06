@@ -1,36 +1,16 @@
-# ---- Stage 1: Build the application ----
-FROM node:18-alpine AS builder
-
-# Set working directory
-WORKDIR /app
-
-# Copy package files and install ALL dependencies (including devDependencies)
-COPY package*.json ./
-RUN npm ci
-
-# Copy the rest of the source code
-COPY . .
-
-# Run the build script
-RUN npm run build
-
-# ---- Stage 2: Create the final production image ----
+# Use official Node.js runtime as a base image
 FROM node:18-alpine
 
-# Set working directory
+# Set working directory in the container
 WORKDIR /app
 
-# Copy package files and install ONLY production dependencies
+# Copy package.json and install all dependencies
+# We need devDependencies for the dev server
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install
 
-# Copy the built application from the 'builder' stage
-COPY --from=builder /app/build ./build
-# Note: If your build output is in a 'dist' folder, change the line above to:
-# COPY --from=builder /app/dist ./dist
-
-# Expose the port the app runs on
+# Expose port 3000
 EXPOSE 3000
 
-# Start the application
+# The command to start the dev server
 CMD ["npm", "start"]
